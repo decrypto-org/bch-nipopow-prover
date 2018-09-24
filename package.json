@@ -1,0 +1,22 @@
+{
+  "name": "nipopow-prover",
+  "version": "1.0.0",
+  "main": "./lib/ProverNode.js",
+  "bin": {
+    "bch-interlinker": "./bin/bch-interlinker"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "bcash": "https://github.com/bcoin-org/bcash",
+    "bcrypto": "^1.1.0",
+    "math-buffer": "^0.1.1",
+    "p-event": "^2.1.0",
+    "ramda": "^0.25.0"
+  },
+  "devDependencies": {
+    "tap": "^12.0.1"
+  },
+  "scripts": {
+    "test": "tap test/*.js"
+  }
+}

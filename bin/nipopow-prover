@@ -1,0 +1,54 @@
+#!/usr/bin/env node
+
+'use strict';
+
+process.title = 'nipopow-prover';
+
+const assert = require('assert');
+const ProverNode = require('../lib/ProverNode');
+
+const node = new ProverNode({
+  config: true,
+  argv: true,
+  env: true,
+  logFile: true,
+  logConsole: false,
+  logLevel: 'info',
+  db: 'leveldb',
+  memory: false,
+  persistent: true,
+  workers: true,
+  listen: true,
+  loader: require
+});
+
+process.on('unhandledRejection', (err, promise) => {
+  throw err;
+});
+
+const fs = require('fs');
+
+(async () => {
+  await node.ensure();
+  console.log('prefix =', node.config.prefix);
+  console.log('network =', node.chain.network);
+  await node.open();
+  await node.connect();
+  node.startSync();
+
+  console.log('chain height', node.chain.height);
+
+  await node.chain.reset(node.chain.height - 10);
+  node.on('block', async (blk, entry) => {
+    const {txs} = blk;
+    if (txs.length > 0) {
+      const height = await node.chain.getHeight(blk.hash());
+      const serializedTxs = JSON.stringify(txs.map(tx => tx.toJSON()));
+      console.log('writing txs of height', height);
+      fs.writeFileSync(`test/data/bcash-testnet-block-${height}-txs.json`, serializedTxs);
+    }
+  });
+})().catch((err) => {
+  console.error(err.stack);
+  process.exit(1);
+});
