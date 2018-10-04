@@ -29,8 +29,7 @@ test('extracts interlink hashes from tx', async function(t) {
   const [txJSON] = await readTXFile(1260212);
   const tx = TX.fromJSON(txJSON);
   const extracted = extractInterlinkHashes(tx);
-  t.equal(extracted.length, 1);
-  t.same(extracted[0], b('aeed62c94315f1e45d4fa9027c9c973d1148f9c0a3dc749c70aa0db0e92cc894'));
+  t.same(extracted, [b('aeed62c94315f1e45d4fa9027c9c973d1148f9c0a3dc749c70aa0db0e92cc894')]);
 });
 
 test('extracts interlink hashes from merkeblock', async function(t) {
