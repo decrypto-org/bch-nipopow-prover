@@ -4,11 +4,11 @@
 const {MerkleBlock, Block, TX} = require('bcash');
 module.exports = {
   serialize: merkleBlock => {
-    return (new Block).toJSON.call(merkleBlock);
+    return Block.prototype.toJSON.call(merkleBlock);
   },
   deserialize: json => {
     const merkleBlock = new MerkleBlock;
-    (new Block).fromJSON.call(merkleBlock, json);
+    Block.prototype.fromJSON.call(merkleBlock, json);
     return merkleBlock;
   }
 };
