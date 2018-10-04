@@ -3,22 +3,39 @@ const fs = require('fs').promises;
 const path = require('path');
 const {compose, composeP, map, curryN, curry, flip} = require('ramda');
 
-const extractInterlinkHashes = require('../lib/interlink-extractor');
+
+const DATA_DIR = path.join(__dirname, 'data');
+const prependDataPath = curryN(2, path.join)(DATA_DIR);
 
 const readJSONFile = composeP(JSON.parse, fs.readFile);
-const DATA_DIR = path.join(__dirname, 'data');
-const blockFileName = height => `bcash-testnet-block-${height}-txs.json`;
-const blockFile = compose(curryN(2, path.join)(DATA_DIR), blockFileName);
-const readBlockFile = compose(readJSONFile, blockFile);
+
+const txFileName = height => `bcash-testnet-block-${height}-txs.json`;
+const txFile = compose(prependDataPath, txFileName);
+
+const merkleBlockFileName = height => `bcash-testnet-block-${height}-merkleblock.json`;
+const merkleBlockFile = compose(prependDataPath, merkleBlockFileName);
+
+const readTXFile = compose(readJSONFile, txFile);
+const readMerkleBlockFile = compose(readJSONFile, merkleBlockFile);
 
 const b = hex => Buffer.from(hex, 'hex');
 
 const {TX} = require('bcash');
+const MerkleBlockSerializer = require('./helpers/MerkleBlockSerializer');
+const {extractInterlinkHashes, extractInterlinkHashesFromMerkleBlock} =
+  require('../lib/interlink-extractor');
 
 test('extracts interlink hashes from tx', async function(t) {
-  const [txJSON] = await readBlockFile(1260212);
+  const [txJSON] = await readTXFile(1260212);
   const tx = TX.fromJSON(txJSON);
   const extracted = extractInterlinkHashes(tx);
   t.equal(extracted.length, 1);
   t.same(extracted[0], b('aeed62c94315f1e45d4fa9027c9c973d1148f9c0a3dc749c70aa0db0e92cc894'));
+});
+
+test('extracts interlink hashes from merkeblock', async function(t) {
+  const merkleBlockJSON = await readMerkleBlockFile(1260339);
+  const merkleBlock = MerkleBlockSerializer.deserialize(merkleBlockJSON);
+  const extracted = extractInterlinkHashesFromMerkleBlock(merkleBlock);
+  t.same(extracted, [b('3ed9f218fcd415e036ccd4b485f252f1dc30db43320d51721b17462a0485a25a'), b('3ed9f218fcd415e036ccd4b485f252f1dc30db43320d51721b17462a0485a25a')]);
 });
