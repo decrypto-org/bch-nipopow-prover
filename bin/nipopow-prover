@@ -27,6 +27,15 @@ process.on('unhandledRejection', (err, promise) => {
 });
 
 const fs = require('fs');
+const {unnest, map, compose} = require('ramda');
+const extractInterlinkHashes = require('../lib/interlink-extractor');
+
+const hexify = x => x.toString('hex');
+const interlinksFromTxs = compose(
+  map(hexify),
+  unnest,
+  map(extractInterlinkHashes),
+);
 
 (async () => {
   await node.ensure();
@@ -38,15 +47,11 @@ const fs = require('fs');
 
   console.log('chain height', node.chain.height);
 
-  await node.chain.reset(node.chain.height - 10);
-  node.on('block', async (blk, entry) => {
+  await node.chain.reset(node.chain.height - 100);
+  node.on('block', async (blk) => {
     const {txs} = blk;
-    if (txs.length > 0) {
-      const height = await node.chain.getHeight(blk.hash());
-      const serializedTxs = JSON.stringify(txs.map(tx => tx.toJSON()));
-      console.log('writing txs of height', height);
-      fs.writeFileSync(`test/data/bcash-testnet-block-${height}-txs.json`, serializedTxs);
-    }
+    console.log('block %s: %O', blk.rhash(), interlinksFromTxs(txs));
+    console.log('block was: %O', blk);
   });
 })().catch((err) => {
   console.error(err.stack);
