@@ -28,7 +28,7 @@ process.on('unhandledRejection', (err, promise) => {
 
 const fs = require('fs');
 const {unnest, map, compose} = require('ramda');
-const extractInterlinkHashes = require('../lib/interlink-extractor');
+const {extractInterlinkHashes} = require('../lib/interlink-extractor');
 
 const hexify = x => x.toString('hex');
 const interlinksFromTxs = compose(
@@ -36,6 +36,8 @@ const interlinksFromTxs = compose(
   unnest,
   map(extractInterlinkHashes),
 );
+
+const RESET_HEIGHT = 1256700;
 
 (async () => {
   await node.ensure();
@@ -47,13 +49,17 @@ const interlinksFromTxs = compose(
 
   console.log('chain height', node.chain.height);
 
-  await node.chain.reset(node.chain.height - 100);
+  if (node.chain.height > RESET_HEIGHT) {
+    await node.chain.reset(RESET_HEIGHT);
+    console.log('chain height reset to %d', RESET_HEIGHT);
+  }
+
   node.on('block', async (blk) => {
     const {txs} = blk;
     console.log('block %s: %O', blk.rhash(), interlinksFromTxs(txs));
-    console.log('block was: %O', blk);
+    //console.log('block was: %O', blk);
   });
 })().catch((err) => {
-  console.error(err.stack);
+  console.error(err);
   process.exit(1);
 });
