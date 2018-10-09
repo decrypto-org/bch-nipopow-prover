@@ -37,8 +37,6 @@ const interlinksFromTxs = compose(
   map(extractInterlinkHashes),
 );
 
-const RESET_HEIGHT = 1256700;
-
 (async () => {
   await node.ensure();
   console.log('prefix =', node.config.prefix);
@@ -46,21 +44,13 @@ const RESET_HEIGHT = 1256700;
   await node.open();
   await node.connect();
   node.startSync();
+  await node.startProving();
 
   console.log('chain height', node.chain.height);
 
-  if (node.chain.height > RESET_HEIGHT) {
-    await node.chain.reset(RESET_HEIGHT);
-    console.log('chain height reset to %d', RESET_HEIGHT);
-  }
-
-  node.on('block', async (blk) => {
-    const {txs} = blk;
-    const interlinks = interlinksFromTxs(txs);
-    if (interlinks.length > 0) {
-      console.log('block %s: %O', blk.rhash(), interlinks);
-    }
-  });
+  setInterval(() => {
+    console.log('height = %d', node.chain.height);
+  }, 1000);
 })().catch((err) => {
   console.error(err);
   process.exit(1);
