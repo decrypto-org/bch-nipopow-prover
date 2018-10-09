@@ -56,8 +56,10 @@ const RESET_HEIGHT = 1256700;
 
   node.on('block', async (blk) => {
     const {txs} = blk;
-    console.log('block %s: %O', blk.rhash(), interlinksFromTxs(txs));
-    //console.log('block was: %O', blk);
+    const interlinks = interlinksFromTxs(txs);
+    if (interlinks.length > 0) {
+      console.log('block %s: %O', blk.rhash(), interlinks);
+    }
   });
 })().catch((err) => {
   console.error(err);
