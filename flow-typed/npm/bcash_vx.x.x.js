@@ -177,6 +177,27 @@ declare class bcash$Coin extends bcash$Output {
   static fromTX(tx : bcash$TX, index : number, height : number) : bcash$Coin;
 }
 
+declare class bcash$AbstractBlock {
+  version: number;
+  prevBlock: Hash;
+  merkleRoot: Hash;
+  time: number;
+  bits: number;
+  nonce: number;
+
+  hash(enc : 'hex'): Hash;
+  hash(?null): Buffer;
+  rhash(): Hash;
+}
+
+declare class bcash$MerkleBlock extends bcash$AbstractBlock {
+  txs: Array<bcash$TX>;
+  hashes: Array<Hash>;
+  flags: number;
+
+  hasTX(hash: Hash): boolean;
+}
+
 declare module 'bcash' {
   declare module.exports: {
     node : {
