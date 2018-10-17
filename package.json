@@ -10,6 +10,7 @@
     "bcash": "https://github.com/bcoin-org/bcash",
     "bcrypto": "^1.1.0",
     "immutable": "^3.8.2",
+    "lodash": "^4.17.11",
     "math-buffer": "^0.1.1",
     "p-event": "^2.1.0",
     "ramda": "^0.25.0"
