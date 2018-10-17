@@ -20,6 +20,7 @@ module.exports = class Prover {
   blockById: BufferMap;
   interlink: Interlink;
   blockList: Array<Buffer>;
+  onBlock: (blk: bcash.MerkleBlock) => void;
 
   constructor() {
     this.blockById = new BufferMap();
@@ -29,9 +30,11 @@ module.exports = class Prover {
     this.valid = new BufferMap();
     this.interlink = new Interlink();
     this.blockList = [];
+
+    this.onBlock = this.onBlock.bind(this);
   }
 
-  onBlock = (blk: bcash$MerkleBlock) => {
+  onBlock(blk: bcash.MerkleBlock) {
     const id = blk.hash();
     if (this.blockById.has(id)) {
       return;

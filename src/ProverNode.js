@@ -1,24 +1,29 @@
 // @flow
 
 const bcash = require('bcash');
-const {fromRev, revHex} = require('bcash/lib/utils/util');
 const pEvent = require('p-event');
 const _ = require('lodash');
 
 const Interlink = require('./Interlink');
 const Prover = require('./Prover');
 
-const MARKED_BLOCK_HASH =
-  fromRev('00000000000001934669a81ecfaa64735597751ac5ca78c4d8f345f11c2237cf');
-const VELVET_FORK_MARKER = 'interlink';
-const RESET_HEIGHT = 1257602;
+const {VELVET_FORK_MARKER} = require('./constants');
+
+const MAX_WAIT_FOR_SYNC_MS = 2000;
 
 module.exports = class ProverNode extends bcash.SPVNode {
   prover: Prover;
+  onSync: () => void;
 
   constructor(opts: {}) {
     super(opts);
     this.prover = new Prover();
+    this.onSync = _.debounce(this.onSync.bind(this), MAX_WAIT_FOR_SYNC_MS);
+  }
+
+  async open() {
+    this.setCallbacks();
+    await super.open();
   }
 
   async connect() {
@@ -26,32 +31,13 @@ module.exports = class ProverNode extends bcash.SPVNode {
     await super.connect();
   }
 
-  async startProving() {
-    if (this.chain.height < RESET_HEIGHT) {
-      this.on('block', (_) => {
-        if (this.chain.height === RESET_HEIGHT - 1) {
-          console.log('setting callbacks at height %d by cb', this.chain.height);
-          this._setCallbacks();
-        }
-      });
-    } else {
-      this._setCallbacks();
-      await this.chain.reset(RESET_HEIGHT);
-      console.log('chain height reset to %d', RESET_HEIGHT);
-    }
+  setCallbacks() {
+    this.on('block', this.onSync);
+    this.on('error', err => { console.log('callback error:', err); });
+    this.onSync();
   }
 
-  _setCallbacks() {
-    this.on('block', this.prover.onBlock);
-    this.on('block', _.debounce(blk => {
-      console.log('debounced fn');
-      if (!this.chain.synced) {
-        console.log('chain unsynced!')
-        return;
-      }
-
-      console.log('chain synced');
-    }, 2000));
-    this.on('error', err => { console.log('fuck this', err); });
+  onSync() {
+    console.log('chain synced!');
   }
 };
