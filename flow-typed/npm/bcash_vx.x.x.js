@@ -42,11 +42,32 @@ declare class bcash$SPVNode {
 
 declare class bcash$Network {}
 
+declare class bcash$ChainEntry {
+  hash: Hash;
+  version: number;
+  prevBlock: Hash;
+  merkleRoot: Hash;
+  time: number;
+  bits: number;
+  nonce: number;
+  height: number;
+
+  rhash(): Hash;
+
+  // chainwork: BN; TODO: need to write BN definition
+}
+
 declare class bcash$Chain {
   height: number;
   synced: boolean;
 
   reset(block: Hash | Height): Promise<void>;
+  getEntry(hash: Hash | Height): Promise<bcash$ChainEntry>;
+  getEntryByHeight(height: Height): Promise<bcash$ChainEntry>;
+  getEntryByHash(hash: Hash): Promise<bcash$ChainEntry>;
+  getNextHash(hash: Hash): Promise<Hash>;
+  getNext(entry: bcash$ChainEntry): Promise<bcash$ChainEntry>;
+  getNextEntry(entry: bcash$ChainEntry): Promise<bcash$ChainEntry>;
 }
 
 declare class bcash$WalletDB {

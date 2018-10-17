@@ -7,7 +7,7 @@ const _ = require('lodash');
 const Interlink = require('./Interlink');
 const Prover = require('./Prover');
 
-const {VELVET_FORK_MARKER} = require('./constants');
+const {TESTNET_GENESIS_ID, VELVET_FORK_MARKER} = require('./constants');
 
 const MAX_WAIT_FOR_SYNC_MS = 2000;
 
@@ -37,7 +37,11 @@ module.exports = class ProverNode extends bcash.SPVNode {
     this.onSync();
   }
 
-  onSync() {
+  async onSync() {
     console.log('chain synced!');
+    let blk = await this.chain.getEntryByHash(TESTNET_GENESIS_ID);
+    while (blk) {
+      blk = await this.chain.getNextEntry(blk);
+    }
   }
 };
