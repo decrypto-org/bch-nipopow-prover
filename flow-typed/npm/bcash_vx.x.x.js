@@ -235,5 +235,10 @@ declare module 'bcash' {
       encode(str : (string | Buffer)) : Buffer
     },
     MerkleBlock: Class<bcash$MerkleBlock>,
+    util: {
+      revHex(buf: Buffer): string;
+      fromRev(str: string): Buffer;
+      // TODO: add the rest
+    }
   }
 }
