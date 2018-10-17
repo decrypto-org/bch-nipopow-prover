@@ -1,15 +1,19 @@
-'use strict';
+// @flow
 
 const merkle = require('bcrypto/lib/merkle');
 const hash256 = require('bcrypto/lib/hash256');
 const level = require('./level');
 
+type BlockId = Buffer;
+
 class Interlink {
-  constructor(list = []) {
+  list: Array<BlockId>;
+
+  constructor(list: Array<BlockId> = []) {
     this.list = list;
   }
 
-  update(blockId) {
+  update(blockId: BlockId) {
     const list = this.list.slice();
     const lvl = level(blockId);
     for (let i = 0; i <= lvl; ++i) {
@@ -21,7 +25,7 @@ class Interlink {
     return new Interlink(list);
   }
 
-  proof(level) {
+  proof(level: number) {
     return merkle.createBranch(hash256, level, [...this.list]);
   }
 
