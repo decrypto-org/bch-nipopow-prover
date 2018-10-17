@@ -1,3 +1,5 @@
+// @flow
+
 const {Set} = require('immutable');
 
 function suffixProof({chain: C, k, m}) {

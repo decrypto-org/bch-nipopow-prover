@@ -1,9 +1,11 @@
-// @ts-check
+// @flow
+
+const bcash = require('bcash');
 const {BufferMap} = require('buffer-map');
 const {fromRev} = require('bcash/lib/utils/util');
 
 const Interlink = require('./Interlink');
-const defaultLevelFn = require('./level');
+const level = require('./level');
 const {extractInterlinkHashesFromMerkleBlock} = require('./interlink-extractor');
 
 const h = x => x.toString('hex');
@@ -11,7 +13,15 @@ const h = x => x.toString('hex');
 const Gen = fromRev('00000000000001934669a81ecfaa64735597751ac5ca78c4d8f345f11c2237cf');
 
 module.exports = class Prover {
-  constructor(levelFn=defaultLevelFn) {
+  genesis: ?Buffer;
+  lastBlock: ?Buffer;
+  realLink: BufferMap;
+  valid: BufferMap;
+  blockById: BufferMap;
+  interlink: Interlink;
+  blockList: Array<Buffer>;
+
+  constructor() {
     this.blockById = new BufferMap();
     this.genesis = null;
     this.lastBlock = null;
@@ -19,11 +29,9 @@ module.exports = class Prover {
     this.valid = new BufferMap();
     this.interlink = new Interlink();
     this.blockList = [];
-    this.onBlock = this.onBlock.bind(this);
-    this.levelFn = levelFn;
   }
 
-  onBlock(blk) {
+  onBlock = (blk: bcash$MerkleBlock) => {
     const id = blk.hash();
     if (this.blockById.has(id)) {
       return;
@@ -35,13 +43,12 @@ module.exports = class Prover {
     }
 
     this.blockById.set(id, blk);
-    this.blockList.push(blk);
+    this.blockList.push(blk.hash());
 
     if (this.lastBlock)
       this.realLink.set(this.lastBlock, this.interlink);
 
     const includedInterlinkHashes = extractInterlinkHashesFromMerkleBlock(blk);
-    // @ts-ignore
     const valid = includedInterlinkHashes.some(x => x.equals(this.interlink.hash()));
     if (this.lastBlock)
       this.valid.set(this.lastBlock, valid);
@@ -54,7 +61,7 @@ module.exports = class Prover {
     this.interlink = this.interlink.update(id);
   }
 
-  followUp(B, mu) {
+  followUp(B: InterlinkBlock, mu: number): {B: InterlinkBlock, aux: Array<InterlinkBlock>} {
     let aux = [B];
     let {id} = B;
     while (!id.equals(Gen)) {
@@ -67,13 +74,13 @@ module.exports = class Prover {
       B = this.blockById.get(id);
       aux.push(B);
 
-      if (this.levelFn(B.id) === mu)
+      if (level(B.id) === mu)
         return {B, aux};
     }
     return {B, aux};
   }
 
-  findUpchain(mu, startBlockId, endBlockId=this.lastBlock) {
+  findUpchain(mu: number, startBlockId: Buffer, endBlockId: ?Buffer = this.lastBlock) {
     let B = this.blockById.get(endBlockId);
     let aux = [B];
     const pi = [B];
@@ -86,11 +93,11 @@ module.exports = class Prover {
     return {pi, aux};
   }
 
-  slice(...args) {
+  slice(...args: any): Array<Buffer> {
     return this.blockList.slice(...args);
   }
 
-  at(i) {
+  at(i: number) {
     if (i < 0) return this.blockList[this.blockList.length + i];
     return this.blockList[i];
   }

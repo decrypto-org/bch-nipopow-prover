@@ -1,3 +1,5 @@
+// @flow
+
 const bcash = require('bcash');
 const {fromRev, revHex} = require('bcash/lib/utils/util');
 const pEvent = require('p-event');
@@ -12,7 +14,9 @@ const VELVET_FORK_MARKER = 'interlink';
 const RESET_HEIGHT = 1257602;
 
 module.exports = class ProverNode extends bcash.SPVNode {
-  constructor(opts) {
+  prover: Prover;
+
+  constructor(opts: {}) {
     super(opts);
     this.prover = new Prover();
   }
