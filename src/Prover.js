@@ -1,8 +1,9 @@
+// @ts-check
 const {BufferMap} = require('buffer-map');
 const {fromRev} = require('bcash/lib/utils/util');
 
 const Interlink = require('./Interlink');
-const level = require('./level');
+const defaultLevelFn = require('./level');
 const {extractInterlinkHashesFromMerkleBlock} = require('./interlink-extractor');
 
 const h = x => x.toString('hex');
@@ -10,7 +11,7 @@ const h = x => x.toString('hex');
 const Gen = fromRev('00000000000001934669a81ecfaa64735597751ac5ca78c4d8f345f11c2237cf');
 
 module.exports = class Prover {
-  constructor() {
+  constructor(levelFn=defaultLevelFn) {
     this.blockById = new BufferMap();
     this.genesis = null;
     this.lastBlock = null;
@@ -19,6 +20,7 @@ module.exports = class Prover {
     this.interlink = new Interlink();
     this.blockList = [];
     this.onBlock = this.onBlock.bind(this);
+    this.levelFn = levelFn;
   }
 
   onBlock(blk) {
@@ -39,6 +41,7 @@ module.exports = class Prover {
       this.realLink.set(this.lastBlock, this.interlink);
 
     const includedInterlinkHashes = extractInterlinkHashesFromMerkleBlock(blk);
+    // @ts-ignore
     const valid = includedInterlinkHashes.some(x => x.equals(this.interlink.hash()));
     if (this.lastBlock)
       this.valid.set(this.lastBlock, valid);
@@ -53,32 +56,42 @@ module.exports = class Prover {
 
   followUp(B, mu) {
     let aux = [B];
-    let id = B.hash();
+    let {id} = B;
     while (!id.equals(Gen)) {
       const interlink = this.realLink.get(id);
       if (this.valid.get(id))
-        id = interlink[mu];
+        id = interlink.at(mu);
       else
         id = B.prevBlock;
 
       B = this.blockById.get(id);
       aux.push(B);
 
-      if (level(B.hash()) === mu)
+      if (this.levelFn(B.id) === mu)
         return {B, aux};
     }
     return {B, aux};
   }
 
-  findUpchain(mu, b) { // TODO: should be able to parameterize with block range
-    let B = this.blockById.get(this.lastBlock);
-    const aux = [B];
+  findUpchain(mu, startBlockId, endBlockId=this.lastBlock) {
+    let B = this.blockById.get(endBlockId);
+    let aux = [B];
     const pi = [B];
-    while (B.id !== b) { // TODO: or b.id?
-      let {B, aux: auxP} = this.followUp(B, mu);
-      aux.push(auxP); // TODO: type error in paper?
+    while (B.id !== startBlockId) { 
+      let {B: BPrime, aux: auxPrime} = this.followUp(B, mu);
+      B = BPrime;
+      aux = aux.concat(auxPrime); // TODO: type error in paper?
       pi.push(B);
     }
-    return {B, aux};
+    return {pi, aux};
+  }
+
+  slice(...args) {
+    return this.blockList.slice(...args);
+  }
+
+  at(i) {
+    if (i < 0) return this.blockList[this.blockList.length + i];
+    return this.blockList[i];
   }
 };
