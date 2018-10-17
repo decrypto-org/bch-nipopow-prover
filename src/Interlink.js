@@ -4,7 +4,7 @@ const merkle = require('bcrypto/lib/merkle');
 const hash256 = require('bcrypto/lib/hash256');
 const level = require('./level');
 
-type BlockId = Buffer;
+import type {BlockId} from './types';
 
 class Interlink {
   list: Array<BlockId>;

@@ -1,3 +1,5 @@
+// @flow
+
 const {compose, map, prop, filter, equals, drop, head, dropWhile, not, unnest} = require('ramda');
 
 const VELVET_FORK_MARKER = Buffer.from('interlink');
