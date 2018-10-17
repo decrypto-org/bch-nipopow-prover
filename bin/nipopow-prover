@@ -44,9 +44,6 @@ const interlinksFromTxs = compose(
   await node.open();
   await node.connect();
   node.startSync();
-  await node.startProving();
-
-  console.log('chain height', node.chain.height);
 
   setInterval(() => {
     console.log('height = %d', node.chain.height);
