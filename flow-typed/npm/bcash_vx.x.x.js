@@ -1,6 +1,7 @@
 // This is a work-in-progress attempt to type the bcash library.
 
 type Hash = (string | Buffer);
+type Height = number;
 type Network = any;
 
 declare class bcash$NodeClient {}
@@ -27,6 +28,7 @@ declare class bcash$SPVNode {
   spv : boolean;
   chain : bcash$Chain;
 
+  constructor(opts: {}): bcash$SPVNode; // TODO: better specify options
   on(eventName : string, eventHandler : Function) : void;
   use(walletPlugin : bcash$WalletPlugin) : void;
   require(name : string) : bcash$WalletDB;
@@ -39,7 +41,12 @@ declare class bcash$SPVNode {
 
 declare class bcash$Network {}
 
-declare class bcash$Chain {}
+declare class bcash$Chain {
+  height: number;
+  synced: boolean;
+
+  reset(block: Hash | Height): Promise<void>;
+}
 
 declare class bcash$WalletDB {
   open() : Promise<void>;
@@ -63,6 +70,8 @@ declare class bcash$Pool {
 
   watchAddress(address : (bcash$Address | Buffer)) : void;
   watchOutpoint(outpoint : bcash$Outpoint) : void;
+  watch(data: Buffer | Hash, enc: ?buffer$Encoding): void;
+  unwatch(): void;
   hasTX(hash : Hash) : boolean;
 }
 
@@ -225,5 +234,6 @@ declare module 'bcash' {
     base58 : {
       encode(str : (string | Buffer)) : Buffer
     },
+    MerkleBlock: Class<bcash$MerkleBlock>,
   }
 }
