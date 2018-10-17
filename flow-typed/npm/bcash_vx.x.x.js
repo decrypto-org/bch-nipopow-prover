@@ -37,6 +37,7 @@ declare class bcash$SPVNode {
   connect() : Promise<void>;
   disconnect() : Promise<void>;
   getCoin(hash : Hash, index : number) : bcash$Coin;
+  startSync(): void;
 }
 
 declare class bcash$Network {}
