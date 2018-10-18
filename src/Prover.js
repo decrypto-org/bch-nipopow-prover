@@ -7,7 +7,7 @@ const {fromRev} = require('bcash/lib/utils/util');
 
 const Interlink = require('./Interlink');
 const level = require('./level');
-const {extractInterlinkHashesFromMerkleBlock} = require('./interlink-extractor');
+const {extractInterlinkHashesFromMerkleBlock} = require('./interlinkExtractor');
 
 const h = x => x.toString('hex');
 
