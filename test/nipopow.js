@@ -2,11 +2,9 @@
 const {test} = require('tap');
 const sinon = require('sinon');
 const {spy} = sinon;
-const {Set} = require('immutable');
 const chai = require('chai');
 const {expect} = chai;
 chai.use(require('sinon-chai'));
-chai.use(require('chai-immutable'));
 
 const Chain = require('../lib/chain');
 const {suffixProof} = require('../lib/nipopow');

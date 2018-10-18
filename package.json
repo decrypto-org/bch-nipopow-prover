@@ -9,7 +9,6 @@
   "dependencies": {
     "bcash": "https://github.com/bcoin-org/bcash",
     "bcrypto": "^1.1.0",
-    "immutable": "^4.0.0-rc.10",
     "lodash": "^4.17.11",
     "math-buffer": "^0.1.1",
     "p-event": "^2.1.0",
@@ -17,7 +16,6 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "chai-immutable": "^2.0.0-rc.2",
     "flow-bin": "^0.83.0",
     "flow-remove-types": "^1.2.3",
     "flow-typed": "^2.5.1",

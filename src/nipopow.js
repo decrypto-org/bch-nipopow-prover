@@ -1,7 +1,5 @@
 // @flow
 
-const {Set} = require('immutable');
-
 const Prover = require('./Prover');
 import type {BlockId} from './types';
 
