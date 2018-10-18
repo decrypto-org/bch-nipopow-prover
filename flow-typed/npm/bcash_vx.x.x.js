@@ -129,6 +129,12 @@ declare class bcash$TX {
 
   hash(enc : ?'hex') : Buffer;
   getOutputValue() : number;
+  static fromJSON({
+    version: number,
+    inputs: Array<{}>,
+    outputs: Array<{}>,
+    locktime: number,
+  }): bcash$TX;
 }
 
 declare class bcash$TXRecord {
@@ -257,6 +263,7 @@ declare module 'bcash' {
       encode(str : (string | Buffer)) : Buffer
     },
     MerkleBlock: Class<bcash$MerkleBlock>,
+    TX: Class<bcash$TX>,
     util: {
       revHex(buf: Buffer): string;
       fromRev(str: string): Buffer;
