@@ -24,8 +24,8 @@ function suffixProof({chain: C, k, m}: {
     leftId = muSubchain[muSubchain.length - m];
     let newBlocks = wholePath;
     if (mu !== 0) {
-      let startingIdInWholePath = newBlocks.findIndex(id => id.equals(leftId));
-      newBlocks = newBlocks.slice(0, startingIdInWholePath);
+      let leftIdInWholePath = newBlocks.findIndex(id => id.equals(leftId));
+      newBlocks = newBlocks.slice(0, leftIdInWholePath);
     }
     pi = pi.concat(newBlocks);
   }
