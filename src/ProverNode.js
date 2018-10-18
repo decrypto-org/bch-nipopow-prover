@@ -7,9 +7,11 @@ const _ = require("lodash");
 const Interlink = require("./Interlink");
 const Prover = require("./Prover");
 
+const {suffixProof} = require('./nipopow');
+
 const { TESTNET_GENESIS_ID, VELVET_FORK_MARKER } = require("./constants");
 
-const MAX_WAIT_FOR_SYNC_MS = 2000;
+const MAX_WAIT_FOR_SYNC_MS = 20000;
 
 module.exports = class ProverNode extends bcash.SPVNode {
   prover: Prover;
@@ -32,6 +34,9 @@ module.exports = class ProverNode extends bcash.SPVNode {
   }
 
   setCallbacks() {
+    this.on("block", (blk: bcash.MerkleBlock) => {
+      this.prover.onBlock(blk, this.chain.height);
+    });
     this.on("block", this.onSync);
     this.on("error", err => {
       console.log("callback error:", err);
@@ -39,11 +44,8 @@ module.exports = class ProverNode extends bcash.SPVNode {
     this.onSync();
   }
 
-  async onSync() {
+  onSync() {
     console.log("chain synced!");
-    let blk = await this.chain.getEntryByHash(TESTNET_GENESIS_ID);
-    while (blk) {
-      blk = await this.chain.getNextEntry(blk);
-    }
+    console.log(suffixProof({chain: this.prover, m: 5, k: 5}));
   }
 };

@@ -21,6 +21,8 @@ import type { BlockId, Level } from "./types";
 
 import type {VelvetChain} from './VelvetChain';
 
+const { TESTNET_GENESIS_HEIGHT } = require('./constants');
+
 module.exports = class Prover implements VelvetChain {
   genesis: ?BlockId;
   lastBlock: ?BlockId;
@@ -29,7 +31,7 @@ module.exports = class Prover implements VelvetChain {
   blockById: BufferMap;
   interlink: Interlink;
   blockList: Array<BlockId>;
-  onBlock: (blk: bcash.MerkleBlock) => void;
+  onBlock: (blk: bcash.MerkleBlock, height: number) => void;
 
   constructor() {
     this.blockById = new BufferMap();
@@ -43,7 +45,11 @@ module.exports = class Prover implements VelvetChain {
     this.onBlock = this.onBlock.bind(this);
   }
 
-  onBlock(blk: bcash.MerkleBlock) {
+  onBlock(blk: bcash.MerkleBlock, height: number) {
+    if (height < TESTNET_GENESIS_HEIGHT) {
+      console.log('ignoring block at height = %d', height);
+      return;
+    }
     const id = blk.hash();
     if (this.blockById.has(id)) {
       return;
