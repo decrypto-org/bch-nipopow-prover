@@ -6,7 +6,6 @@ const chai = require('chai');
 const {expect} = chai;
 chai.use(require('sinon-chai'));
 
-const Chain = require('../lib/chain');
 const {suffixProof} = require('../lib/nipopow');
 
 function b(x) {

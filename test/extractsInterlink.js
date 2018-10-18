@@ -23,7 +23,7 @@ const b = hex => Buffer.from(hex, 'hex');
 const {TX} = require('bcash');
 const MerkleBlockSerializer = require('./helpers/MerkleBlockSerializer');
 const {extractInterlinkHashes, extractInterlinkHashesFromMerkleBlock} =
-  require('../lib/interlink-extractor');
+  require('../lib/interlinkExtractor');
 
 test('extracts interlink hashes from tx', async function(t) {
   const [txJSON] = await readTXFile(1260212);
