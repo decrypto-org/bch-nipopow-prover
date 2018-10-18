@@ -28,7 +28,9 @@ process.on('unhandledRejection', (err, promise) => {
 
 const fs = require('fs');
 const {unnest, map, compose} = require('ramda');
-const {extractInterlinkHashes} = require('../lib/interlink-extractor');
+
+const { TESTNET_GENESIS_HEIGHT } = require('../lib/constants');
+const {extractInterlinkHashes} = require('../lib/interlinkExtractor');
 
 const hexify = x => x.toString('hex');
 const interlinksFromTxs = compose(
@@ -44,6 +46,7 @@ const interlinksFromTxs = compose(
   await node.open();
   await node.connect();
   node.startSync();
+  await node.chain.reset(TESTNET_GENESIS_HEIGHT);
 
   setInterval(() => {
     console.log('height = %d', node.chain.height);
