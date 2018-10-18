@@ -1,13 +1,13 @@
 // @flow
 
-const bcash = require('bcash');
-const pEvent = require('p-event');
-const _ = require('lodash');
+const bcash = require("bcash");
+const pEvent = require("p-event");
+const _ = require("lodash");
 
-const Interlink = require('./Interlink');
-const Prover = require('./Prover');
+const Interlink = require("./Interlink");
+const Prover = require("./Prover");
 
-const {TESTNET_GENESIS_ID, VELVET_FORK_MARKER} = require('./constants');
+const { TESTNET_GENESIS_ID, VELVET_FORK_MARKER } = require("./constants");
 
 const MAX_WAIT_FOR_SYNC_MS = 2000;
 
@@ -32,13 +32,15 @@ module.exports = class ProverNode extends bcash.SPVNode {
   }
 
   setCallbacks() {
-    this.on('block', this.onSync);
-    this.on('error', err => { console.log('callback error:', err); });
+    this.on("block", this.onSync);
+    this.on("error", err => {
+      console.log("callback error:", err);
+    });
     this.onSync();
   }
 
   async onSync() {
-    console.log('chain synced!');
+    console.log("chain synced!");
     let blk = await this.chain.getEntryByHash(TESTNET_GENESIS_ID);
     while (blk) {
       blk = await this.chain.getNextEntry(blk);

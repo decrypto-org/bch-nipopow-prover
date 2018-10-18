@@ -1,10 +1,10 @@
 // @flow
 
-const merkle = require('bcrypto/lib/merkle');
-const hash256 = require('bcrypto/lib/hash256');
-const level = require('./level');
+const merkle = require("bcrypto/lib/merkle");
+const hash256 = require("bcrypto/lib/hash256");
+const level = require("./level");
 
-import type {BlockId} from './types';
+import type { BlockId } from "./types";
 
 class Interlink {
   list: Array<BlockId>;
@@ -17,10 +17,8 @@ class Interlink {
     const list = this.list.slice();
     const lvl = level(blockId);
     for (let i = 0; i <= lvl; ++i) {
-      if (i < list.length)
-        list[i] = blockId;
-      else
-        list.push(blockId);
+      if (i < list.length) list[i] = blockId;
+      else list.push(blockId);
     }
     return new Interlink(list);
   }
