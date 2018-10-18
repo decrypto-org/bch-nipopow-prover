@@ -25,7 +25,8 @@
   },
   "scripts": {
     "test": "tap -Rspec test/*.js",
-    "build": "flow-remove-types src/ -d lib/",
+    "clean": "rm -rf lib/",
+    "build": "npm run clean && flow-remove-types src/ -d lib/",
     "prepublish": "npm run build",
     "flow": "flow"
   }
