@@ -1,5 +1,6 @@
 // @flow
 
+const assert = require('assert');
 const bcash = require('bcash');
 const {BufferMap} = require('buffer-map');
 const {fromRev} = require('bcash/lib/utils/util');
@@ -12,6 +13,8 @@ const h = x => x.toString('hex');
 
 const Gen = fromRev('00000000000001934669a81ecfaa64735597751ac5ca78c4d8f345f11c2237cf');
 
+import type {BlockId, Level} from './types';
+
 module.exports = class Prover {
   genesis: ?Buffer;
   lastBlock: ?Buffer;
@@ -19,7 +22,7 @@ module.exports = class Prover {
   valid: BufferMap;
   blockById: BufferMap;
   interlink: Interlink;
-  blockList: Array<Buffer>;
+  blockList: Array<BlockId>;
   onBlock: (blk: bcash.MerkleBlock) => void;
 
   constructor() {
@@ -64,9 +67,10 @@ module.exports = class Prover {
     this.interlink = this.interlink.update(id);
   }
 
-  followUp(B: InterlinkBlock, mu: number): {B: InterlinkBlock, aux: Array<InterlinkBlock>} {
-    let aux = [B];
-    let {id} = B;
+  followUp(newerBlockId: BlockId, mu: Level): Array<BlockId> {
+    let id = newerBlockId;
+    let path = [id];
+    let B = this.blockById.get(id);
     while (!id.equals(Gen)) {
       const interlink = this.realLink.get(id);
       if (this.valid.get(id))
@@ -75,33 +79,72 @@ module.exports = class Prover {
         id = B.prevBlock;
 
       B = this.blockById.get(id);
-      aux.push(B);
+      path.push(id);
 
-      if (level(B.id) === mu)
-        return {B, aux};
+      if (level(id) === mu) {
+        break;
+      }
     }
-    return {B, aux};
+
+    path.reverse();
+    return path;
   }
 
-  findUpchain(mu: number, startBlockId: Buffer, endBlockId: ?Buffer = this.lastBlock) {
-    let B = this.blockById.get(endBlockId);
-    let aux = [B];
-    const pi = [B];
-    while (B.id !== startBlockId) { 
-      let {B: BPrime, aux: auxPrime} = this.followUp(B, mu);
-      B = BPrime;
-      aux = aux.concat(auxPrime); // TODO: type error in paper?
-      pi.push(B);
+  findPrevOnLevel(from: BlockId, mu: Level): ?BlockId {
+    let id = from;
+    while (!id.equals(Gen)) {
+      if (level(id) >= mu) {
+        return id;
+      }
+      let B = this.blockById.get(id);
+      id = B.prevBlock;
     }
-    return {pi, aux};
+    return null;
   }
 
-  slice(...args: any): Array<Buffer> {
-    return this.blockList.slice(...args);
+  findUpchain(mu: Level, startBlockId: Buffer, endBlockId: ?Buffer = this.lastBlock): {
+    actuallyOnMu: Array<BlockId>,
+    wholePath: Array<BlockId>
+  } {
+    if (!endBlockId) {
+      throw new Error('findUpchain called but no chain yet');
+    }
+
+    let id = this.findPrevOnLevel(endBlockId, mu);
+    if (!id) {
+      return {
+        actuallyOnMu: [],
+        wholePath: []
+      };
+    }
+
+    let B = this.blockById.get(id);
+    let wholePath = [id];
+    let actuallyOnMu = [id];
+
+    while (!id.equals(startBlockId) || !id.equals(Gen)) { 
+      let path = this.followUp(id, mu);
+
+      id = path[0];
+      B = this.blockById.get(id);
+
+      if (level(id) >= mu) {
+        actuallyOnMu.push(id);
+      }
+      wholePath = path.concat(wholePath);
+    }
+
+    actuallyOnMu.reverse();
+    return {
+      actuallyOnMu,
+      wholePath
+    };
   }
 
-  at(i: number) {
-    if (i < 0) return this.blockList[this.blockList.length + i];
-    return this.blockList[i];
+  idAt(index: number) {
+    if (index < 0) {
+      index += this.blockList.length;
+    }
+    return this.blockList[index];
   }
 };

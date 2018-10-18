@@ -5,7 +5,7 @@ const { shift, compare } = require('math-buffer');
 import type {BlockId} from './types';
 const {TESTNET_MAX_TARGET} = require('./constants');
 
-module.exports = function level(blockId: BlockId, target: BlockId) {
+module.exports = function level(blockId: BlockId, target?: BlockId) {
   target = target || TESTNET_MAX_TARGET;
   let tar = Buffer.from(target);
   let shifts = 0;

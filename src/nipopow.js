@@ -2,27 +2,37 @@
 
 const {Set} = require('immutable');
 
-function suffixProof({chain: C, k, m}) {
-  let B = C.genesis;
-  let pi = Set(), chi;
+const Prover = require('./Prover');
+import type {BlockId} from './types';
 
-  for (let mu = C.realLink(-k-1).length; mu >= 0; --mu) {
-    let {pi: alpha, aux} = C.findUpchain(mu, B.id, C.at(-k).id);
+function suffixProof({chain: C, k, m}: {
+  chain: Prover,
+  k: number,
+  m: number
+}): Array<BlockId> {
+  if (!C.genesis) {
+    throw new Error('no genesis');
+  }
+  let leftId = C.genesis;
+  let pi: Array<BlockId> = [], chi: Array<BlockId> = [];
+  let rightMostStableId = C.idAt(-k-1);
+  let maxMu = C.realLink.get(rightMostStableId).length;
 
-    if (alpha.length >= m)
-      B = alpha[alpha.length - m];
-    
-    // TODO: actually fix union
-    let cut = mu > 0 ? m : 0;
-    pi = pi.union(aux, alpha.slice(0, alpha.length - cut));
+  for (let mu = maxMu; mu >= 0; --mu) {
+    let {actuallyOnMu, wholePath} = C.findUpchain(mu, leftId, rightMostStableId);
+    if (actuallyOnMu.length <= m) {
+      continue;
+    }
+    leftId = actuallyOnMu[actuallyOnMu.length - m];
+    let startingIdInWholePath = wholePath.findIndex(id => id.equals(leftId));
+    pi = pi.concat(wholePath.slice(0, startingIdInWholePath));
   }
 
-  chi = C.slice(-k);
+  for (let i = -k; i < 0; --i) {
+    chi.push(C.idAt(i));
+  }
 
-  return {
-    pi,
-    chi
-  };
+  return pi.concat(chi);
 }
 
 module.exports = {suffixProof};
