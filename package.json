@@ -19,6 +19,7 @@
     "flow-bin": "^0.83.0",
     "flow-remove-types": "^1.2.3",
     "flow-typed": "^2.5.1",
+    "jest": "^23.6.0",
     "prettier": "1.14.3",
     "sinon": "^6.3.5",
     "sinon-chai": "^3.2.0",
