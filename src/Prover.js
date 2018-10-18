@@ -16,8 +16,8 @@ const Gen = fromRev('00000000000001934669a81ecfaa64735597751ac5ca78c4d8f345f11c2
 import type {BlockId, Level} from './types';
 
 module.exports = class Prover {
-  genesis: ?Buffer;
-  lastBlock: ?Buffer;
+  genesis: ?BlockId;
+  lastBlock: ?BlockId;
   realLink: BufferMap;
   valid: BufferMap;
   blockById: BufferMap;
