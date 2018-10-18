@@ -102,41 +102,41 @@ module.exports = class Prover {
     return null;
   }
 
-  findUpchain(mu: Level, startBlockId: Buffer, endBlockId: ?Buffer = this.lastBlock): {
-    actuallyOnMu: Array<BlockId>,
+  findVelvetUpchain(mu: Level, leftBlockId: BlockId, rightBlockId: ?BlockId = this.lastBlock): {
+    muSubchain: Array<BlockId>,
     wholePath: Array<BlockId>
   } {
     if (!endBlockId) {
       throw new Error('findUpchain called but no chain yet');
     }
 
-    let id = this.findPrevOnLevel(endBlockId, mu);
+    let id = this.findPrevOnLevel(rightBlockId, mu);
     if (!id) {
       return {
-        actuallyOnMu: [],
+        muSubchain: [],
         wholePath: []
       };
     }
 
     let B = this.blockById.get(id);
     let wholePath = [id];
-    let actuallyOnMu = [id];
+    let muSubchain = [id];
 
-    while (!id.equals(startBlockId) || !id.equals(Gen)) { 
+    while (!id.equals(leftBlockId) || !id.equals(Gen)) {
       let path = this.followUp(id, mu);
 
       id = path[0];
       B = this.blockById.get(id);
 
       if (level(id) >= mu) {
-        actuallyOnMu.push(id);
+        muSubchain.push(id);
       }
       wholePath = path.concat(wholePath);
     }
 
-    actuallyOnMu.reverse();
+    muSubchain.reverse();
     return {
-      actuallyOnMu,
+      muSubchain,
       wholePath
     };
   }

@@ -17,13 +17,17 @@ function suffixProof({chain: C, k, m}: {
   let maxMu = C.realLink.get(rightMostStableId).length;
 
   for (let mu = maxMu; mu >= 0; --mu) {
-    let {actuallyOnMu, wholePath} = C.findUpchain(mu, leftId, rightMostStableId);
-    if (actuallyOnMu.length <= m) {
+    let {muSubchain, wholePath} = C.findVelvetUpchain(mu, leftId, rightMostStableId);
+    if (muSubchain.length <= m) {
       continue;
     }
-    leftId = actuallyOnMu[actuallyOnMu.length - m];
-    let startingIdInWholePath = wholePath.findIndex(id => id.equals(leftId));
-    pi = pi.concat(wholePath.slice(0, startingIdInWholePath));
+    leftId = muSubchain[muSubchain.length - m];
+    let newBlocks = wholePath;
+    if (mu !== 0) {
+      let startingIdInWholePath = newBlocks.findIndex(id => id.equals(leftId));
+      newBlocks = newBlocks.slice(0, startingIdInWholePath);
+    }
+    pi = pi.concat(newBlocks);
   }
 
   for (let i = -k; i < 0; --i) {
