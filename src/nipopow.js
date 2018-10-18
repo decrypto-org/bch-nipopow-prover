@@ -2,13 +2,14 @@
 
 const Prover = require("./Prover");
 import type { BlockId } from "./types";
+import type { VelvetChain } from "./VelvetChain";
 
 function suffixProof({
   chain: C,
   k,
   m
 }: {
-  chain: Prover,
+  chain: VelvetChain,
   k: number,
   m: number
 }): Array<BlockId> {
@@ -19,7 +20,7 @@ function suffixProof({
   let pi: Array<BlockId> = [],
     chi: Array<BlockId> = [];
   let rightMostStableId = C.idAt(-k - 1);
-  let maxMu = C.realLink.get(rightMostStableId).length;
+  let maxMu = C.interlinkSizeOf(rightMostStableId);
 
   for (let mu = maxMu; mu >= 0; --mu) {
     let { muSubchain, wholePath } = C.findVelvetUpchain(
@@ -27,19 +28,19 @@ function suffixProof({
       leftId,
       rightMostStableId
     );
-    if (muSubchain.length <= m) {
-      continue;
-    }
-    leftId = muSubchain[muSubchain.length - m];
     let newBlocks = wholePath;
-    if (mu !== 0) {
+    if (mu > 0) {
+      if (muSubchain.length <= m) {
+        continue;
+      }
+      leftId = muSubchain[muSubchain.length - m];
       let leftIdInWholePath = newBlocks.findIndex(id => id.equals(leftId));
       newBlocks = newBlocks.slice(0, leftIdInWholePath);
     }
     pi = pi.concat(newBlocks);
   }
 
-  for (let i = -k; i < 0; --i) {
+  for (let i = -k; i < 0; ++i) {
     chi.push(C.idAt(i));
   }
 

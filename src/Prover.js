@@ -19,7 +19,9 @@ const Gen = fromRev(
 
 import type { BlockId, Level } from "./types";
 
-module.exports = class Prover {
+import type {VelvetChain} from './VelvetChain';
+
+module.exports = class Prover implements VelvetChain {
   genesis: ?BlockId;
   lastBlock: ?BlockId;
   realLink: BufferMap;
@@ -140,5 +142,9 @@ module.exports = class Prover {
       index += this.blockList.length;
     }
     return this.blockList[index];
+  }
+
+  interlinkSizeOf(id: BlockId) {
+    return this.realLink.get(id).length;
   }
 };
