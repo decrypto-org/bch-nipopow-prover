@@ -90,37 +90,21 @@ module.exports = class Prover {
     return path;
   }
 
-  findPrevOnLevel(from: BlockId, mu: Level): ?BlockId {
-    let id = from;
-    while (!id.equals(Gen)) {
-      if (level(id) >= mu) {
-        return id;
-      }
-      let B = this.blockById.get(id);
-      id = B.prevBlock;
-    }
-    return null;
-  }
-
   findVelvetUpchain(mu: Level, leftBlockId: BlockId, rightBlockId: ?BlockId = this.lastBlock): {
     muSubchain: Array<BlockId>,
     wholePath: Array<BlockId>
   } {
-    if (!endBlockId) {
-      throw new Error('findUpchain called but no chain yet');
-    }
-
-    let id = this.findPrevOnLevel(rightBlockId, mu);
+    let id = rightBlockId;
     if (!id) {
-      return {
-        muSubchain: [],
-        wholePath: []
-      };
+      throw new Error('findVelvetUpchain called but no chain yet');
     }
 
     let B = this.blockById.get(id);
     let wholePath = [id];
-    let muSubchain = [id];
+    let muSubchain = [];
+    if (level(id) >= mu) {
+      muSubchain.push(id);
+    }
 
     while (!id.equals(leftBlockId) || !id.equals(Gen)) {
       let path = this.followUp(id, mu);
