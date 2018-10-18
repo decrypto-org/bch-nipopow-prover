@@ -1,11 +1,4 @@
-// @ts-check
-const {test} = require('tap');
-const sinon = require('sinon');
-const {spy} = sinon;
-const chai = require('chai');
-const {expect} = chai;
-chai.use(require('sinon-chai'));
-
+// @flow
 const {suffixProof} = require('../lib/nipopow');
 
 function b(x) {
@@ -13,6 +6,8 @@ function b(x) {
 }
 
 class MockChain {
+  levels: Array<number>;
+
   constructor() {
     this.levels = [Infinity, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0];
   }
