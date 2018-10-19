@@ -28,7 +28,7 @@
     "build": "npm run clean && babel src/ -d lib/",
     "prepublish": "npm run build",
     "flow": "flow",
-    "stylefix": "prettier --write src/*"
+    "stylefix": "prettier --write src/* test/*"
   },
   "babel": {
     "presets": [
