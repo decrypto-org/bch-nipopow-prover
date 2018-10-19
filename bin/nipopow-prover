@@ -8,9 +8,11 @@ process.on("unhandledRejection", (err, promise) => {
   throw err;
 });
 
-const entrypoint = require('../lib/entrypoint');
+const entrypoints = require('../lib/entrypoint');
+const development = process.env.NODE_ENV === 'dev';
+const selectedEntrypoint = development ? 'localEntrypoint' : 'liveEntrypoint';
 
-entrypoint()
+entrypoints[selectedEntrypoint]()
   .catch(err => {
     console.error('unhandled error:', err);
     process.exit(1);
