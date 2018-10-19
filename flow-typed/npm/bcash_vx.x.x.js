@@ -27,6 +27,7 @@ declare class bcash$SPVNode {
   pool : bcash$Pool;
   spv : boolean;
   chain : bcash$Chain;
+  config: {prefix: any}; // TODO: config type
 
   constructor(opts: {}): bcash$SPVNode; // TODO: better specify options
   on(eventName : string, eventHandler : Function) : void;
@@ -38,6 +39,7 @@ declare class bcash$SPVNode {
   disconnect() : Promise<void>;
   getCoin(hash : Hash, index : number) : bcash$Coin;
   startSync(): void;
+  ensure(): Promise<void>;
 }
 
 declare class bcash$Network {}
@@ -60,6 +62,7 @@ declare class bcash$ChainEntry {
 declare class bcash$Chain {
   height: number;
   synced: boolean;
+  network: bcash$Network;
 
   reset(block: Hash | Height): Promise<void>;
   getEntry(hash: Hash | Height): Promise<bcash$ChainEntry>;
