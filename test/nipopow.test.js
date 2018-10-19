@@ -1,15 +1,17 @@
 // @flow
-const {suffixProof} = require('../src/nipopow');
-const Prover = require('../src/Prover');
+const { suffixProof } = require("../src/nipopow");
+const Prover = require("../src/Prover");
 
-import type {VelvetChain} from '../src/VelvetChain';
-import type {BlockId} from '../src/types';
+import type { VelvetChain } from "../src/VelvetChain";
+import type { BlockId } from "../src/types";
 
-const {fromInt, add} = require('math-buffer');
-const {util: {revHex}} = require('bcash');
+const { fromInt, add } = require("math-buffer");
+const {
+  util: { revHex }
+} = require("bcash");
 
 function toInt(buf: Buffer): number {
-  return parseInt('0x' + revHex(buf));
+  return parseInt("0x" + revHex(buf));
 }
 
 class MockChain implements VelvetChain {
@@ -45,7 +47,9 @@ class MockChain implements VelvetChain {
       [0, 7]
     ][level];
 
-    let ans = fullPi.filter(x => x >= left && x <= right).map(x => this.idAt(x));
+    let ans = fullPi
+      .filter(x => x >= left && x <= right)
+      .map(x => this.idAt(x));
     return {
       muSubchain: ans,
       wholePath: ans
@@ -53,8 +57,8 @@ class MockChain implements VelvetChain {
   }
 }
 
-test('makes a suffix proof', () => {
+test("makes a suffix proof", () => {
   const mockChain = new MockChain();
-  let proof = suffixProof({chain: mockChain, m: 1, k: 1});
+  let proof = suffixProof({ chain: mockChain, m: 1, k: 1 });
   expect(proof.map(toInt)).toEqual([0, 7, 11, 13, 14]);
 });

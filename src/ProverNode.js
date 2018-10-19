@@ -7,7 +7,7 @@ const _ = require("lodash");
 const Interlink = require("./Interlink");
 const Prover = require("./Prover");
 
-const {suffixProof} = require('./nipopow');
+const { suffixProof } = require("./nipopow");
 
 const { TESTNET_GENESIS_ID, VELVET_FORK_MARKER } = require("./constants");
 
@@ -46,6 +46,6 @@ module.exports = class ProverNode extends bcash.SPVNode {
 
   onSync() {
     console.log("chain synced!");
-    console.log(suffixProof({chain: this.prover, m: 5, k: 5}));
+    console.log(suffixProof({ chain: this.prover, m: 5, k: 5 }));
   }
 };

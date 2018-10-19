@@ -19,9 +19,9 @@ const Gen = fromRev(
 
 import type { BlockId, Level } from "./types";
 
-import type {VelvetChain} from './VelvetChain';
+import type { VelvetChain } from "./VelvetChain";
 
-const { TESTNET_GENESIS_HEIGHT } = require('./constants');
+const { TESTNET_GENESIS_HEIGHT } = require("./constants");
 
 module.exports = class Prover implements VelvetChain {
   genesis: ?BlockId;
@@ -47,7 +47,7 @@ module.exports = class Prover implements VelvetChain {
 
   onBlock(blk: bcash.MerkleBlock, height: number) {
     if (height < TESTNET_GENESIS_HEIGHT) {
-      console.log('ignoring block at height = %d', height);
+      console.log("ignoring block at height = %d", height);
       return;
     }
     const id = blk.hash();
