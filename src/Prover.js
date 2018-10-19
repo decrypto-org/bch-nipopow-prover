@@ -23,13 +23,14 @@ import type { VelvetChain } from "./VelvetChain";
 
 const { TESTNET_GENESIS_HEIGHT } = require("./constants");
 
+const RealLink = require("./RealLink");
+
 module.exports = class Prover implements VelvetChain {
   genesis: ?BlockId;
   lastBlock: ?BlockId;
-  realLink: BufferMap;
+  realLink: RealLink;
   valid: BufferMap;
   blockById: BufferMap;
-  interlink: Interlink;
   blockList: Array<BlockId>;
   onBlock: (blk: bcash.MerkleBlock, height: number) => void;
 
@@ -37,9 +38,8 @@ module.exports = class Prover implements VelvetChain {
     this.blockById = new BufferMap();
     this.genesis = null;
     this.lastBlock = null;
-    this.realLink = new BufferMap();
+    this.realLink = new RealLink();
     this.valid = new BufferMap();
-    this.interlink = new Interlink();
     this.blockList = [];
 
     this.onBlock = this.onBlock.bind(this);
@@ -63,24 +63,18 @@ module.exports = class Prover implements VelvetChain {
     this.blockById.set(id, blk);
     this.blockList.push(blk.hash());
 
-    if (this.lastBlock) this.realLink.set(this.lastBlock, this.interlink);
-
     const includedInterlinkHashes = extractInterlinkHashesFromMerkleBlock(blk);
-    const valid = includedInterlinkHashes.some(x =>
-      x.equals(this.interlink.hash())
-    );
-    if (this.lastBlock) this.valid.set(this.lastBlock, valid);
-    if (valid) {
+    this.realLink.onBlock(id, includedInterlinkHashes);
+    if (this.realLink.hasValidInterlink(id)) {
       console.log(
         "realLink for %s: %s vs %O",
         h(id),
-        h(this.interlink.hash()),
+        h(this.realLink.get(id).hash()),
         includedInterlinkHashes.map(h)
       );
     }
 
     this.lastBlock = id;
-    this.interlink = this.interlink.update(id);
   }
 
   followUp(newerBlockId: BlockId, mu: Level): Array<BlockId> {
