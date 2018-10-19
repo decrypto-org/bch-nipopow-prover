@@ -36,7 +36,7 @@ const readMerkleBlockFile = compose(
 const b = hex => Buffer.from(hex, "hex");
 
 const { TX } = require("bcash");
-const MerkleBlockSerializer = require("./helpers/MerkleBlockSerializer");
+const MerkleBlockSerializer = require("../src/MerkleBlockSerializer");
 const {
   extractInterlinkHashes,
   extractInterlinkHashesFromMerkleBlock
