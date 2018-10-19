@@ -1,20 +1,8 @@
 // @flow
 
-const assert = require("assert");
-const ProverNode = require("./ProverNode");
-
 const fs = require("fs");
-const { unnest, map, compose } = require("ramda");
-
+const ProverNode = require("./ProverNode");
 const { TESTNET_GENESIS_HEIGHT } = require("./constants");
-const { extractInterlinkHashes } = require("./interlinkExtractor");
-
-const hexify = x => x.toString("hex");
-const interlinksFromTxs = compose(
-  map(hexify),
-  unnest,
-  map(extractInterlinkHashes)
-);
 
 module.exports = async function() {
   const node = new ProverNode({
