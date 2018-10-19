@@ -4,6 +4,10 @@
 
 process.title = 'nipopow-prover';
 
+process.on("unhandledRejection", (err, promise) => {
+  throw err;
+});
+
 const entrypoint = require('../lib/entrypoint');
 
 entrypoint()

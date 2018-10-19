@@ -3,25 +3,6 @@
 const assert = require("assert");
 const ProverNode = require("./ProverNode");
 
-const node = new ProverNode({
-  config: true,
-  argv: true,
-  env: true,
-  logFile: true,
-  logConsole: false,
-  logLevel: "info",
-  db: "leveldb",
-  memory: false,
-  persistent: true,
-  workers: true,
-  listen: true,
-  loader: require
-});
-
-process.on("unhandledRejection", (err, promise) => {
-  throw err;
-});
-
 const fs = require("fs");
 const { unnest, map, compose } = require("ramda");
 
@@ -36,6 +17,21 @@ const interlinksFromTxs = compose(
 );
 
 module.exports = async function() {
+  const node = new ProverNode({
+    config: true,
+    argv: true,
+    env: true,
+    logFile: true,
+    logConsole: false,
+    logLevel: "info",
+    db: "leveldb",
+    memory: false,
+    persistent: true,
+    workers: true,
+    listen: true,
+    loader: require
+  });
+
   await node.ensure();
   console.log("prefix =", node.config.prefix);
   console.log("network =", node.chain.network);
