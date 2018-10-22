@@ -12,5 +12,17 @@ test("produces a valid suffix proof for the bch testnet velvet fork", () => {
   for (let blk of blockLoader.getBlocks()) {
     prover.onBlock(blk, height++);
   }
-  expect(suffixProof({ chain: prover, k: 5, m: 1 }).length).toBeGreaterThan(5);
+
+  let k = 5;
+  let lastStableBlockId = prover.idAt(-k - 1);
+
+  expect(lastStableBlockId).toBeDefined();
+
+  let stableInterlinkSize = prover.interlinkSizeOf(lastStableBlockId);
+  expect(stableInterlinkSize).toBeDefined();
+  expect(stableInterlinkSize).toBeGreaterThan(1);
+  let proof = suffixProof({ chain: prover, k: 5, m: 1 });
+  expect(proof.length).toBeGreaterThan(5);
+  expect(proof.length).toBeLessThanOrEqual(5794);
+  console.log(proof.length);
 });
