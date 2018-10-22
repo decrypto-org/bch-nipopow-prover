@@ -219,8 +219,8 @@ declare class bcash$Coin extends bcash$Output {
 
 declare class bcash$AbstractBlock {
   version: number;
-  prevBlock: Hash;
-  merkleRoot: Hash;
+  prevBlock: Buffer;
+  merkleRoot: Buffer;
   time: number;
   bits: number;
   nonce: number;
