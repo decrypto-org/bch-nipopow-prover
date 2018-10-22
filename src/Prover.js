@@ -3,7 +3,7 @@
 const assert = require("assert");
 const bcash = require("bcash");
 const { BufferMap } = require("buffer-map");
-const { fromRev } = require("bcash/lib/utils/util");
+const { fromRev, revHex } = require("bcash/lib/utils/util");
 
 const Interlink = require("./Interlink");
 const level = require("./level");
@@ -71,10 +71,11 @@ module.exports = class Prover implements VelvetChain {
     const includedInterlinkHashes = extractInterlinkHashesFromMerkleBlock(blk);
     this.realLink.onBlock(id, includedInterlinkHashes);
     if (this.realLink.hasValidInterlink(id)) {
+      const interlink = this.interlinkFor(id);
       console.log(
         "realLink for %s: %s vs %O",
         h(id),
-        h(this.realLink.get(id).hash()),
+        h(interlink.hash()),
         includedInterlinkHashes.map(h)
       );
     }
@@ -85,13 +86,13 @@ module.exports = class Prover implements VelvetChain {
   followUp(newerBlockId: BlockId, mu: Level): Array<BlockId> {
     let id = newerBlockId;
     let path = [id];
-    let B = this.blockById.get(id);
+    let B = this.getBlockById(id);
     while (!id.equals(Gen)) {
-      const interlink = this.realLink.get(id);
+      const interlink = this.interlinkFor(id);
       if (this.realLink.hasValidInterlink(id)) id = interlink.at(mu);
       else id = B.prevBlock;
 
-      B = this.blockById.get(id);
+      B = this.getBlockById(id);
       path.push(id);
 
       if (level(id) === mu) {
@@ -150,6 +151,22 @@ module.exports = class Prover implements VelvetChain {
   }
 
   interlinkSizeOf(id: BlockId) {
-    return this.realLink.get(id).length;
+    return this.interlinkFor(id).length;
+  }
+
+  interlinkFor(id: BlockId): Interlink {
+    const interlink = this.realLink.get(id);
+    if (!interlink) {
+      throw new Error(`no interlink for block ${revHex(id)}`);
+    }
+    return interlink;
+  }
+
+  getBlockById(id: BlockId): bcash.MerkleBlock {
+    const block = this.blockById.get(id);
+    if (!block) {
+      throw new Error(`no block record for ${revHex(id)}`);
+    }
+    return block;
   }
 };
