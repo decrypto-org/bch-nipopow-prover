@@ -6,10 +6,14 @@ const level = require("./level");
 
 import type { BlockId } from "./types";
 
+const { TESTNET_GENESIS_ID } = require("./constants");
+
 class Interlink {
   list: Array<BlockId>;
+  genesisId: BlockId;
 
-  constructor(list: Array<BlockId> = []) {
+  constructor(genesisId: BlockId, list: Array<BlockId> = []) {
+    this.genesisId = genesisId;
     this.list = list;
   }
 
@@ -20,7 +24,7 @@ class Interlink {
       if (i < list.length) list[i] = blockId;
       else list.push(blockId);
     }
-    return new Interlink(list);
+    return new Interlink(this.genesisId, list);
   }
 
   proof(level: number) {
@@ -29,6 +33,17 @@ class Interlink {
 
   hash() {
     return merkle.createRoot(hash256, [...this.list])[0];
+  }
+
+  get length() {
+    return this.list.length;
+  }
+
+  at(lvl: number) {
+    if (lvl >= this.list.length) {
+      return this.genesisId;
+    }
+    return this.list[lvl];
   }
 }
 

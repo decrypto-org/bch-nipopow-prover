@@ -28,8 +28,7 @@ const RealLink = require("./RealLink");
 module.exports = class Prover implements VelvetChain {
   genesis: ?BlockId;
   lastBlock: ?BlockId;
-  realLink: RealLink;
-  valid: BufferMap;
+  _realLink: ?RealLink;
   blockById: BufferMap;
   blockList: Array<BlockId>;
   onBlock: (blk: bcash.MerkleBlock, height: number) => void;
@@ -38,11 +37,16 @@ module.exports = class Prover implements VelvetChain {
     this.blockById = new BufferMap();
     this.genesis = null;
     this.lastBlock = null;
-    this.realLink = new RealLink();
-    this.valid = new BufferMap();
     this.blockList = [];
 
     this.onBlock = this.onBlock.bind(this);
+  }
+
+  get realLink() {
+    if (!this._realLink) {
+      throw new Error("realLink requested on empty chain");
+    }
+    return this._realLink;
   }
 
   onBlock(blk: bcash.MerkleBlock, height: number) {
@@ -57,6 +61,7 @@ module.exports = class Prover implements VelvetChain {
 
     if (!this.genesis) {
       this.genesis = id;
+      this._realLink = new RealLink(this.genesis);
       console.log("genesis was %O", blk);
     }
 

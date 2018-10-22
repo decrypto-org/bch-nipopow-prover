@@ -10,9 +10,9 @@ module.exports = class RealLink {
   runningInterlink: Interlink;
   validBlocks: BufferSet;
 
-  constructor() {
+  constructor(genesisId: BlockId) {
     this.blockIdToInterlink = new BufferMap();
-    this.runningInterlink = new Interlink();
+    this.runningInterlink = new Interlink(genesisId);
     this.validBlocks = new BufferSet();
   }
 
