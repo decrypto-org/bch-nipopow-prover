@@ -21,8 +21,6 @@ import type { BlockId, Level } from "./types";
 
 import type { VelvetChain } from "./VelvetChain";
 
-const { TESTNET_GENESIS_HEIGHT } = require("./constants");
-
 const RealLink = require("./RealLink");
 
 module.exports = class Prover implements VelvetChain {
@@ -50,10 +48,6 @@ module.exports = class Prover implements VelvetChain {
   }
 
   onBlock(blk: bcash.MerkleBlock, height: number) {
-    if (height < TESTNET_GENESIS_HEIGHT) {
-      console.log("ignoring block at height = %d", height);
-      return;
-    }
     const id = blk.hash();
     if (this.blockById.has(id)) {
       return;
