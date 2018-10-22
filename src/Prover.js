@@ -88,7 +88,7 @@ module.exports = class Prover implements VelvetChain {
     let B = this.blockById.get(id);
     while (!id.equals(Gen)) {
       const interlink = this.realLink.get(id);
-      if (this.valid.get(id)) id = interlink.at(mu);
+      if (this.realLink.hasValidInterlink(id)) id = interlink.at(mu);
       else id = B.prevBlock;
 
       B = this.blockById.get(id);
