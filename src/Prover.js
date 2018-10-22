@@ -123,7 +123,7 @@ module.exports = class Prover implements VelvetChain {
       muSubchain.push(id);
     }
 
-    while (!id.equals(leftBlockId) || !id.equals(Gen)) {
+    while (!id.equals(leftBlockId) && !id.equals(Gen)) {
       let path = this.followUp(id, mu);
 
       id = path[0];
