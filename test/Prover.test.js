@@ -15,8 +15,10 @@ overwriteLog();
 _mock(extractInterlinkHashesFromMerkleBlock).mockImplementation(() => []);
 
 function blockFromId(id): bcash$MerkleBlock {
+  const int = toInt(id);
   return ({
-    hash: jest.fn(() => id)
+    hash: jest.fn(() => id),
+    prevBlock: int === 0 ? null : fromInt(int - 1)
   }: any);
 }
 
@@ -28,6 +30,17 @@ function proverWithBlocks(blockIdList) {
     console.log("block on height", height);
   }
   return prover;
+}
+
+function mockRealLink(blockIds, blockIdsWithInvalidInterlink) {
+  return {
+    onBlock: () => {},
+    hasValidInterlink: id => blockIdsWithInvalidInterlink.includes(toInt(id)),
+    get: id => ({
+      at: x => (x > 5 ? blockIds[0] : blockIds[toInt(id) - 1]),
+      hash: () => Buffer.from("")
+    })
+  };
 }
 
 describe("Prover", () => {
@@ -89,20 +102,45 @@ describe("Prover", () => {
       const blockIds = range(5).map(fromInt);
       const prover = proverWithBlocks(blockIds);
 
-      jest.spyOn(prover, "realLink", "get").mockImplementation(() => ({
-        onBlock: () => {},
-        hasValidInterlink: () => true,
-        get: id => ({
-          at: x => (x > 5 ? blockIds[0] : blockIds[toInt(id) - 1]),
-          hash: () => Buffer.from("")
-        })
-      }));
+      jest
+        .spyOn(prover, "realLink", "get")
+        .mockImplementation(() => mockRealLink(blockIds, []));
 
       _mock(level).mockClear();
       _mock(level).mockImplementation(id => 5);
       const path = prover.followUp(blockIds[3], 5);
       expect(level).toHaveBeenCalledTimes(1);
       expect(path.map(toInt)).toEqual([2, 3]);
+    });
+
+    it("will return a level-0 block if there's a non-validly interlinked block", () => {
+      const blockIds = range(5).map(fromInt);
+      const prover = proverWithBlocks(blockIds);
+
+      jest
+        .spyOn(prover, "realLink", "get")
+        .mockImplementation(() => mockRealLink(blockIds, [2]));
+
+      _mock(level).mockClear();
+      _mock(level).mockImplementation(id => (toInt(id) !== 2 ? 5 : 0));
+      const path = prover.followUp(blockIds[3], 5);
+      expect(level).toHaveBeenCalledTimes(2);
+      expect(path.map(toInt)).toEqual([1, 2, 3]);
+    });
+
+    it("will lead up to genesis if needed", () => {
+      const blockIds = range(5).map(fromInt);
+      const prover = proverWithBlocks(blockIds);
+
+      jest
+        .spyOn(prover, "realLink", "get")
+        .mockImplementation(() => mockRealLink(blockIds, blockIds.map(toInt)));
+
+      _mock(level).mockClear();
+      _mock(level).mockImplementation(id => 0);
+      const path = prover.followUp(blockIds[3], 5);
+      expect(level).toHaveBeenCalledTimes(3);
+      expect(path.map(toInt)).toEqual([0, 1, 2, 3]);
     });
   });
 });
