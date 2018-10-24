@@ -1,6 +1,6 @@
 // @flow
 
-const assert = require("assert");
+const nullthrows = require("nullthrows");
 const bcash = require("bcash");
 const { BufferMap } = require("buffer-map");
 const { fromRev, revHex } = require("bcash/lib/utils/util");
@@ -12,10 +12,6 @@ const {
 } = require("./interlinkExtractor");
 
 const h = x => x.toString("hex");
-
-const Gen = fromRev(
-  "00000000000001934669a81ecfaa64735597751ac5ca78c4d8f345f11c2237cf"
-);
 
 import type { BlockId, Level } from "./types";
 
@@ -78,10 +74,11 @@ module.exports = class Prover implements VelvetChain {
   }
 
   followUp(newerBlockId: BlockId, mu: Level): Array<BlockId> {
+    const genesis = nullthrows(this.genesis);
     let id = newerBlockId;
     let path = [id];
     let B = this.getBlockById(id);
-    while (!id.equals(Gen)) {
+    while (!id.equals(genesis)) {
       const interlink = this.interlinkFor(id);
       if (this.realLink.hasValidInterlink(id)) id = interlink.at(mu);
       else id = B.prevBlock;
@@ -106,6 +103,7 @@ module.exports = class Prover implements VelvetChain {
     muSubchain: Array<BlockId>,
     wholePath: Array<BlockId>
   } {
+    const genesis = nullthrows(this.genesis);
     let id = rightBlockId;
     if (!id) {
       throw new Error("findVelvetUpchain called but no chain yet");
@@ -118,7 +116,7 @@ module.exports = class Prover implements VelvetChain {
       muSubchain.push(id);
     }
 
-    while (!id.equals(leftBlockId) && !id.equals(Gen)) {
+    while (!id.equals(leftBlockId) && !id.equals(genesis)) {
       let path = this.followUp(id, mu);
 
       id = path[0];
