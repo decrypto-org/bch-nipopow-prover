@@ -123,7 +123,6 @@ module.exports = class Prover implements VelvetChain {
       throw new Error("findVelvetUpchain called but no chain yet");
     }
 
-    let B = this.blockById.get(id);
     let wholePath = [];
     let muSubchain = [];
     if (level(id) >= mu) {
@@ -150,7 +149,6 @@ module.exports = class Prover implements VelvetChain {
 
       id = path[0];
       console.log(`got id ${revHex(id)}`);
-      B = this.blockById.get(id);
 
       if (level(id) >= mu) {
         muSubchain.push(id);
