@@ -25,8 +25,8 @@
   },
   "scripts": {
     "integration": "jest --testMatch=\\*\\* --testPathPattern=\\.integration\\.js$",
-    "unit": "jest",
-    "coverage": "npm run unit -- --coverage",
+    "test": "jest",
+    "coverage": "npm run test -- --coverage",
     "clean": "rm -rf lib/",
     "build": "npm run clean && babel src/ -d lib/",
     "prepublish": "npm run build",
