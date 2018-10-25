@@ -24,4 +24,12 @@ function _mock(mockFn: any) {
   return (mockFn: any);
 }
 
-module.exports = { toInt, fromInt, range, revHex, fromRev, _mock, overwriteLog };
+module.exports = {
+  toInt,
+  fromInt,
+  range,
+  revHex,
+  fromRev,
+  _mock,
+  overwriteLog
+};
