@@ -29,8 +29,15 @@ test("produces a valid suffix proof for the bch testnet velvet fork", () => {
   expect(proof.length).toBeGreaterThan(5);
   expect(proof.length).toBeLessThanOrEqual(5794);
   expect(_.uniqWith(proof, _.isEqual)).toEqual(proof);
-  expect(prover.areLinkable(proof)).toEqual(proof);
-  console.debug(proof.length);
+
+  const linked = prover.linkBlocks(proof);
+  const merkleBlocks = linked.map(x => x.merkleBlock);
+  const hashes = merkleBlocks.map(x => x.hash());
+  const maybeInterlinkProofs = linked.map(x => x.interlinkProof);
+  const actualInterlinkProofs = _.compact(maybeInterlinkProofs);
+  expect(hashes).toEqual(proof);
+  expect(actualInterlinkProofs.length).toBeGreaterThan(0);
+  console.debug("actual interlinks in proof", actualInterlinkProofs.length);
 });
 
 xit("show statistics about deployment", () => {

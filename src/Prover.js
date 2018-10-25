@@ -190,25 +190,32 @@ module.exports = class Prover implements VelvetChain {
     return nullthrows(this.blockById.get(id));
   }
 
-  areLinkable(blockIds: Array<BlockId>) {
+  linkBlocks(blockIds: Array<BlockId>) {
+    assert(blockIds[0].equals(nullthrows(this.genesis)));
+    let ret = [
+      { merkleBlock: this.getBlockById(blockIds[0]), interlinkProof: null }
+    ];
     for (let i = 1; i < blockIds.length; ++i) {
       const blk = blockIds[i],
         wantedPrev = blockIds[i - 1];
+      let interlinkProof = null;
       if (this.prev(blk).equals(wantedPrev)) {
       } else if (this.realLink.hasValidInterlink(blk)) {
         const mu = level(wantedPrev);
-        assert(
-          this.interlinkFor(blk)
-            .at(mu)
-            .equals(wantedPrev)
-        );
+        const interlink = this.interlinkFor(blk);
+        assert(interlink.at(mu).equals(wantedPrev));
+        interlinkProof = interlink.proof(mu);
       } else {
         // $FlowFixMe
         assert.fail(
           `couldn't link block ${revHex(blk)} to ${revHex(wantedPrev)}`
         );
       }
+      ret.push({
+        merkleBlock: this.getBlockById(blk),
+        interlinkProof
+      });
     }
-    return blockIds;
+    return ret;
   }
 };
