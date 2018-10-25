@@ -27,6 +27,7 @@
     "integration": "jest --testMatch=\\*\\* --testPathPattern=\\.integration\\.js$",
     "test": "jest",
     "coverage": "npm run test -- --coverage",
+    "testall": "npm run coverage && npm run integration",
     "clean": "rm -rf lib/",
     "build": "npm run clean && babel src/ -d lib/",
     "prepublish": "npm run build",
