@@ -1,5 +1,6 @@
 // @flow
 
+const nullthrows = require("nullthrows");
 const Prover = require("./Prover");
 import type { BlockId } from "./types";
 import type { VelvetChain } from "./VelvetChain";
@@ -13,10 +14,7 @@ function suffixProof({
   k: number,
   m: number
 }): Array<BlockId> {
-  if (!C.genesis) {
-    throw new Error("no genesis");
-  }
-  let leftId = C.genesis;
+  let leftId = nullthrows(C.genesis);
   let pi: Array<BlockId> = [],
     chi: Array<BlockId> = [];
   let rightMostStableId = C.idAt(-k - 1);
