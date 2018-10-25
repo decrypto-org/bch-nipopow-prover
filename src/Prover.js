@@ -186,19 +186,11 @@ module.exports = class Prover implements VelvetChain {
   }
 
   interlinkFor(id: BlockId): Interlink {
-    const interlink = this.realLink.get(id);
-    if (!interlink) {
-      throw new Error(`no interlink for block ${revHex(id)}`);
-    }
-    return interlink;
+    return nullthrows(this.realLink.get(id));
   }
 
   getBlockById(id: BlockId): bcash.MerkleBlock {
-    const block = this.blockById.get(id);
-    if (!block) {
-      throw new Error(`no block record for ${revHex(id)}`);
-    }
-    return block;
+    return nullthrows(this.blockById.get(id));
   }
 
   areLinkable(blockIds: Array<BlockId>) {
