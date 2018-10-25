@@ -2,6 +2,7 @@
 
 const nullthrows = require("nullthrows");
 const bcash = require("bcash");
+const _ = require("lodash");
 const { BufferMap } = require("buffer-map");
 const { fromRev, revHex } = require("bcash/lib/utils/util");
 
@@ -95,6 +96,19 @@ module.exports = class Prover implements VelvetChain {
     return path;
   }
 
+  isLR(l: BlockId, r: BlockId) {
+    const genesis = nullthrows(this.genesis);
+    if (l.equals(r)) {
+      return false;
+    }
+    for (
+      ;
+      r && !r.equals(genesis) && !r.equals(l);
+      r = this.getBlockById(r).prevBlock
+    ) {}
+    return l.equals(genesis) || r.equals(l);
+  }
+
   findVelvetUpchain(
     mu: Level,
     leftBlockId: BlockId,
@@ -110,23 +124,41 @@ module.exports = class Prover implements VelvetChain {
     }
 
     let B = this.blockById.get(id);
-    let wholePath = [id];
+    let wholePath = [];
     let muSubchain = [];
     if (level(id) >= mu) {
       muSubchain.push(id);
     }
 
-    while (!id.equals(leftBlockId) && !id.equals(genesis)) {
+    let goneTooFar = false;
+    while (!id.equals(leftBlockId) && !id.equals(genesis) && !goneTooFar) {
       let path = this.followUp(id, mu);
+      console.log("path was " + path.map(revHex).join());
+
+      let outOfRangePathIndex = _.findLastIndex(path, x =>
+        this.isLR(x, leftBlockId)
+      );
+      if (outOfRangePathIndex !== -1) {
+        console.log(
+          `found out of range path with index ${outOfRangePathIndex} where path = ${path
+            .map(revHex)
+            .join()}`
+        );
+        path.splice(0, outOfRangePathIndex + 1);
+        goneTooFar = true;
+      }
 
       id = path[0];
+      console.log(`got id ${revHex(id)}`);
       B = this.blockById.get(id);
 
       if (level(id) >= mu) {
         muSubchain.push(id);
       }
-      wholePath = path.concat(wholePath);
+      wholePath = path.slice(1).concat(wholePath);
     }
+
+    wholePath = [id, ...wholePath];
 
     muSubchain.reverse();
     return {

@@ -10,6 +10,8 @@ const {
 } = require("../src/interlinkExtractor");
 const level = require("../src/level");
 
+debugger;
+
 overwriteLog();
 
 _mock(extractInterlinkHashesFromMerkleBlock).mockImplementation(() => []);
@@ -24,20 +26,39 @@ function blockFromId(id): bcash$MerkleBlock {
 
 function proverWithBlocks(blockIdList) {
   const prover = new Prover();
-  let height = 0;
-  for (let id of blockIdList) {
-    prover.onBlock(blockFromId(id), ++height);
-    console.log("block on height", height);
-  }
+  addBlocksToProver(blockIdList, prover);
   return prover;
 }
 
-function mockRealLink(blockIds, blockIdsWithInvalidInterlink) {
+function addBlocksToProver(blockIds, prover) {
+  let height = 0;
+  for (let id of blockIds) {
+    prover.onBlock(blockFromId(id), ++height);
+    console.log("block on height", height);
+  }
+}
+
+function levelUsingLevels(levels) {
+  _mock(level).mockClear();
+  _mock(level).mockImplementation(id => levels[toInt(id)]);
+}
+
+function mockRealLink(blockIds, blockIdsWithInvalidInterlink, levels) {
+  levels = levels || [Infinity, ...Array(blockIds.length - 1).fill(5)];
   return {
     onBlock: () => {},
-    hasValidInterlink: id => blockIdsWithInvalidInterlink.includes(toInt(id)),
+    hasValidInterlink: id => !blockIdsWithInvalidInterlink.includes(toInt(id)),
     get: id => ({
-      at: x => (x > 5 ? blockIds[0] : blockIds[toInt(id) - 1]),
+      at: x => {
+        let rightEnd = toInt(id);
+        for (let i = rightEnd - 1; i >= 0; --i) {
+          // $FlowFixMe
+          if (levels[i] >= x) {
+            console.log(`returning ${i} for ${rightEnd}`);
+            return blockIds[i];
+          }
+        }
+      },
       hash: () => Buffer.from("")
     })
   };
@@ -141,6 +162,84 @@ describe("Prover", () => {
       const path = prover.followUp(blockIds[3], 5);
       expect(level).toHaveBeenCalledTimes(3);
       expect(path.map(toInt)).toEqual([0, 1, 2, 3]);
+    });
+  });
+
+  describe("findVelvetUpchain", () => {
+    it("returns all blocks till genesis if all on same level", () => {
+      const blockIds = range(5).map(fromInt);
+      const prover = new Prover();
+
+      levelUsingLevels([Infinity, 5, 5, 5, 5]);
+      jest
+        .spyOn(prover, "realLink", "get")
+        .mockImplementation(() => mockRealLink(blockIds, []));
+      addBlocksToProver(blockIds, prover);
+
+      const { muSubchain, wholePath } = prover.findVelvetUpchain(
+        5,
+        blockIds[0],
+        blockIds[4]
+      );
+      expect(muSubchain.map(toInt)).toEqual(range(5));
+      expect(wholePath.map(toInt)).toEqual(range(5));
+    });
+
+    it("selects blocks of a specific level on all valid interlinks", () => {
+      const blockIds = range(5).map(fromInt);
+      const prover = new Prover();
+      const levels = [Infinity, 5, 0, 0, 5];
+      levelUsingLevels(levels);
+      jest
+        .spyOn(prover, "realLink", "get")
+        .mockImplementation(() => mockRealLink(blockIds, [], levels));
+      addBlocksToProver(blockIds, prover);
+
+      const { muSubchain, wholePath } = prover.findVelvetUpchain(
+        5,
+        blockIds[0],
+        blockIds[4]
+      );
+      expect(muSubchain.map(toInt)).toEqual([0, 1, 4]);
+      expect(wholePath.map(toInt)).toEqual([0, 1, 4]);
+    });
+
+    it("works when invalid interlinks exist", () => {
+      const blockIds = range(5).map(fromInt);
+      const prover = new Prover();
+      const levels = [Infinity, 5, 0, 0, 5];
+      levelUsingLevels(levels);
+      jest
+        .spyOn(prover, "realLink", "get")
+        .mockImplementation(() => mockRealLink(blockIds, [4], levels));
+      addBlocksToProver(blockIds, prover);
+
+      const { muSubchain, wholePath } = prover.findVelvetUpchain(
+        5,
+        blockIds[0],
+        blockIds[4]
+      );
+      expect(muSubchain.map(toInt)).toEqual([0, 1, 4]);
+      expect(wholePath.map(toInt)).toEqual([0, 1, 3, 4]);
+    });
+
+    it("works when given as left a non-genesis block", () => {
+      const blockIds = range(5).map(fromInt);
+      const prover = new Prover();
+      const levels = [Infinity, 5, 0, 0, 5];
+      levelUsingLevels(levels);
+      jest
+        .spyOn(prover, "realLink", "get")
+        .mockImplementation(() => mockRealLink(blockIds, [4], levels));
+      addBlocksToProver(blockIds, prover);
+
+      const { muSubchain, wholePath } = prover.findVelvetUpchain(
+        5,
+        blockIds[2],
+        blockIds[4]
+      );
+      expect(muSubchain.map(toInt)).toEqual([4]);
+      expect(wholePath.map(toInt)).toEqual([3, 4]);
     });
   });
 });
