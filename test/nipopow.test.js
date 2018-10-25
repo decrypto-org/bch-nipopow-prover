@@ -49,6 +49,14 @@ class MockChain implements VelvetChain {
       wholePath: ans
     };
   }
+
+  levelledPrev() {
+    return (undefined: any);
+  }
+
+  heightOf() {
+    return (undefined: any);
+  }
 }
 
 test("makes a suffix proof", () => {

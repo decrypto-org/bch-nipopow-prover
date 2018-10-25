@@ -27,10 +27,14 @@ module.exports = class Prover implements VelvetChain {
   _realLink: ?RealLink;
   blockById: BufferMap;
   blockList: Array<BlockId>;
+  height: number;
+  heightById: BufferMap;
   onBlock: (blk: bcash.MerkleBlock, height: number) => void;
 
   constructor() {
     this.blockById = new BufferMap();
+    this.height = 0;
+    this.heightById = new BufferMap();
     this.genesis = null;
     this.lastBlock = null;
     this.blockList = [];
@@ -48,6 +52,8 @@ module.exports = class Prover implements VelvetChain {
       return;
     }
 
+    ++this.height;
+
     if (!this.genesis) {
       this.genesis = id;
       this._realLink = new RealLink(this.genesis);
@@ -55,6 +61,7 @@ module.exports = class Prover implements VelvetChain {
     }
 
     this.blockById.set(id, blk);
+    this.heightById.set(id, this.height);
     this.blockList.push(blk.hash());
 
     const includedInterlinkHashes = extractInterlinkHashesFromMerkleBlock(blk);
@@ -191,6 +198,10 @@ module.exports = class Prover implements VelvetChain {
 
   getBlockById(id: BlockId): bcash.MerkleBlock {
     return nullthrows(this.blockById.get(id));
+  }
+
+  heightOf(id: BlockId): number {
+    return nullthrows(this.heightById.get(id));
   }
 
   linkBlocks(blockIds: Array<BlockId>) {
