@@ -39,10 +39,7 @@ module.exports = class Prover implements VelvetChain {
   }
 
   get realLink() {
-    if (!this._realLink) {
-      throw new Error("realLink requested on empty chain");
-    }
-    return this._realLink;
+    return nullthrows(this._realLink);
   }
 
   onBlock(blk: bcash.MerkleBlock, height: number) {
