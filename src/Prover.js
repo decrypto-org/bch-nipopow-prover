@@ -1,5 +1,6 @@
 // @flow
 
+const assert = require("assert");
 const nullthrows = require("nullthrows");
 const bcash = require("bcash");
 const _ = require("lodash");
@@ -198,5 +199,27 @@ module.exports = class Prover implements VelvetChain {
       throw new Error(`no block record for ${revHex(id)}`);
     }
     return block;
+  }
+
+  areLinkable(blockIds: Array<BlockId>) {
+    for (let i = 1; i < blockIds.length; ++i) {
+      const blk = blockIds[i],
+        wantedPrev = blockIds[i - 1];
+      if (this.prev(blk).equals(wantedPrev)) {
+      } else if (this.realLink.hasValidInterlink(blk)) {
+        const mu = level(wantedPrev);
+        assert(
+          this.interlinkFor(blk)
+            .at(mu)
+            .equals(wantedPrev)
+        );
+      } else {
+        // $FlowFixMe
+        assert.fail(
+          `couldn't link block ${revHex(blk)} to ${revHex(wantedPrev)}`
+        );
+      }
+    }
+    return blockIds;
   }
 };

@@ -28,5 +28,6 @@ test("produces a valid suffix proof for the bch testnet velvet fork", () => {
   expect(proof.length).toBeGreaterThan(5);
   expect(proof.length).toBeLessThanOrEqual(5794);
   expect(_.uniqWith(proof, _.isEqual)).toEqual(proof);
+  expect(prover.areLinkable(proof)).toEqual(proof);
   console.log(proof.length);
 });
