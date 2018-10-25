@@ -1,7 +1,7 @@
 // @flow
 
 const {
-  util: { revHex }
+  util: { revHex, fromRev }
 } = require("bcash");
 const { fromInt } = require("math-buffer");
 const { range } = require("lodash");
@@ -24,4 +24,4 @@ function _mock(mockFn: any) {
   return (mockFn: any);
 }
 
-module.exports = { toInt, fromInt, range, _mock, overwriteLog };
+module.exports = { toInt, fromInt, range, revHex, fromRev, _mock, overwriteLog };
