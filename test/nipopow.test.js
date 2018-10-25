@@ -5,11 +5,8 @@ const Prover = require("../src/Prover");
 import type { VelvetChain } from "../src/VelvetChain";
 import type { BlockId } from "../src/types";
 
-const { toInt } = require("./helpers");
-const { fromInt, add } = require("math-buffer");
-const {
-  util: { revHex }
-} = require("bcash");
+const { toInt, fromInt, revHex } = require("./helpers");
+const { add } = require("math-buffer");
 
 class MockChain implements VelvetChain {
   levels: Array<number>;
