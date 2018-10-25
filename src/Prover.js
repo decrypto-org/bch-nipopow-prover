@@ -107,12 +107,15 @@ module.exports = class Prover implements VelvetChain {
     if (l.equals(r)) {
       return false;
     }
+    if (l.equals(genesis)) {
+      return true;
+    }
     for (
       ;
       r && !r.equals(genesis) && !r.equals(l);
       r = this.getBlockById(r).prevBlock
     ) {}
-    return l.equals(genesis) || r.equals(l);
+    return r.equals(l);
   }
 
   findVelvetUpchain(
