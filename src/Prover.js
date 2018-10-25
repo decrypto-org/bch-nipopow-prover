@@ -74,17 +74,19 @@ module.exports = class Prover implements VelvetChain {
     this.lastBlock = id;
   }
 
+  prev(id: BlockId) {
+    return this.getBlockById(id).prevBlock;
+  }
+
   followUp(newerBlockId: BlockId, mu: Level): Array<BlockId> {
     const genesis = nullthrows(this.genesis);
     let id = newerBlockId;
     let path = [id];
-    let B = this.getBlockById(id);
     while (!id.equals(genesis)) {
       const interlink = this.interlinkFor(id);
       if (this.realLink.hasValidInterlink(id)) id = interlink.at(mu);
-      else id = B.prevBlock;
+      else id = this.prev(id);
 
-      B = this.getBlockById(id);
       path.push(id);
 
       if (level(id) === mu) {
