@@ -1,24 +1,28 @@
 // @flow
-const { suffixProof } = require("../src/nipopow");
+const { suffixProof, infixProof } = require("../src/nipopow");
 const Prover = require("../src/Prover");
 
 import type { VelvetChain } from "../src/VelvetChain";
-import type { BlockId } from "../src/types";
+import type { BlockId, Level } from "../src/types";
 
 const { toInt, fromInt, revHex } = require("./helpers");
 const { add } = require("math-buffer");
+const { BufferSet } = require("buffer-map");
+const nullthrows = require("nullthrows");
 
 class MockChain implements VelvetChain {
   levels: Array<number>;
   genesis: ?BlockId;
+  blockIdsWithBadInterlink: BufferSet;
 
   _realIndex(i: number) {
     return (i + this.levels.length) % this.levels.length;
   }
 
-  constructor() {
+  constructor(blockIdsWithBadInterlink = []) {
     this.levels = [Infinity, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0];
     this.genesis = fromInt(0);
+    this.blockIdsWithBadInterlink = new BufferSet(blockIdsWithBadInterlink);
   }
 
   idAt(i: number) {
@@ -50,12 +54,22 @@ class MockChain implements VelvetChain {
     };
   }
 
-  levelledPrev() {
-    return (undefined: any);
+  levelledPrev(id: BlockId, mu: Level): BlockId {
+    let int = toInt(id);
+    if (this.blockIdsWithBadInterlink.has(id)) {
+      return fromInt(int - 1);
+    } else {
+      for (let i = int - 1; i >= 0; --i) {
+        if (this.levels[i] >= mu) {
+          return fromInt(i);
+        }
+      }
+      return nullthrows(this.genesis);
+    }
   }
 
-  heightOf() {
-    return (undefined: any);
+  heightOf(id: BlockId) {
+    return toInt(id) + 1;
   }
 }
 
@@ -63,4 +77,16 @@ test("makes a suffix proof", () => {
   const mockChain = new MockChain();
   let proof = suffixProof({ chain: mockChain, m: 1, k: 1 });
   expect(proof.map(toInt)).toEqual([0, 7, 11, 13, 14]);
+});
+
+test("makes an infix proof", () => {
+  const mockChain = new MockChain();
+  let proof = infixProof({
+    chain: mockChain,
+    blockOfInterest: fromInt(4),
+    m: 1,
+    k: 1
+  }).map(toInt);
+  expect(proof).toContain(4);
+  expect(proof).toEqual([0, 4, 5, 7, 11, 13, 14]);
 });

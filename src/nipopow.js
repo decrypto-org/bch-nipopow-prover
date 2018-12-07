@@ -1,9 +1,12 @@
 // @flow
 
+const _ = require("lodash");
 const nullthrows = require("nullthrows");
 const Prover = require("./Prover");
 import type { BlockId } from "./types";
 import type { VelvetChain } from "./VelvetChain";
+const { followDown, goBack } = require("./followDown");
+const { fromRev, revHex } = require("bcash/lib/utils/util");
 
 function suffixProof({
   chain: C,
@@ -45,4 +48,38 @@ function suffixProof({
   return pi.concat(chi);
 }
 
-module.exports = { suffixProof };
+function infixProof({
+  chain: C,
+  blockOfInterest: B,
+  k,
+  m
+}: {
+  chain: VelvetChain,
+  blockOfInterest: BlockId,
+  k: number,
+  m: number
+}): Array<BlockId> {
+  const suffixP = suffixProof({ chain: C, k, m });
+  if (suffixP.some(x => x.equals(B))) {
+    return suffixP;
+  }
+
+  const pi = suffixP.slice(0, -k),
+    chi = suffixP.slice(-k);
+
+  const afterBIndex = _.findIndex(pi, e => C.heightOf(e) >= C.heightOf(B));
+  const afterBBlock = pi[afterBIndex];
+  const beforeBIndex = Math.max(afterBIndex - 1, 0);
+  const beforeBBlock = pi[beforeBIndex];
+
+  return [
+    ...pi.slice(0, afterBIndex),
+    ...goBack(C, B, beforeBBlock),
+    B,
+    ...followDown(C, afterBBlock, B),
+    ...pi.slice(afterBIndex),
+    ...chi
+  ];
+}
+
+module.exports = { suffixProof, infixProof };

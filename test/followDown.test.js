@@ -1,5 +1,5 @@
 // @flow
-const followDown = require("../src/followDown");
+const { followDown, goBack } = require("../src/followDown");
 import type { VelvetChain } from "../src/VelvetChain";
 import type { BlockId, Level } from "../src/types";
 const { toInt, fromInt, revHex } = require("./helpers");
@@ -15,8 +15,11 @@ class MockChain implements VelvetChain {
     return (i + this.levels.length) % this.levels.length;
   }
 
-  constructor(blockIdsWithBadInterlink = []) {
-    this.levels = [Infinity, 4, 0, 1, 2, 3, 4];
+  constructor(
+    levels: Array<number>,
+    blockIdsWithBadInterlink: Array<BlockId> = []
+  ) {
+    this.levels = levels;
     this.genesis = fromInt(0);
     this.blockIdsWithBadInterlink = new BufferSet(blockIdsWithBadInterlink);
   }
@@ -54,10 +57,33 @@ class MockChain implements VelvetChain {
   }
 }
 
+const LEVELS_SMALL = [Infinity, 4, 0, 1, 2, 3, 4];
+const LEVELS_BIG = [Infinity, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0];
+
 describe("followDown", () => {
-  it("works", () => {
-    const mockChain = new MockChain();
+  it("works on small sample", () => {
+    const mockChain = new MockChain(LEVELS_SMALL);
     let path = followDown(mockChain, fromInt(6), fromInt(2));
     expect(path.map(toInt)).toEqual([3, 4, 5]);
+  });
+
+  it(
+    "not hang with invalid arguments",
+    () => {
+      const mockChain = new MockChain(LEVELS_BIG);
+      expect(() => {
+        const path = followDown(mockChain, fromInt(1), fromInt(4));
+      }).toThrow();
+    },
+    500
+  );
+});
+
+describe("goBack", () => {
+  it("works", () => {
+    const badInterlinks = [3].map(fromInt);
+    const mockChain = new MockChain(LEVELS_SMALL, badInterlinks);
+    let path = goBack(mockChain, fromInt(3), fromInt(1));
+    expect(path.map(toInt)).toEqual([2]);
   });
 });
