@@ -138,18 +138,14 @@ class TreeNode {
 class InternalNode extends TreeNode {
   left: TreeNode;
   right: ?TreeNode;
-  value: ?Buffer;
 
-  constructor(left: TreeNode, right?: TreeNode, value?: Buffer) {
+  constructor(left: TreeNode, right?: TreeNode) {
     super();
     this.left = left;
     this.right = right;
-    this.value = value;
   }
 
   get hash(): Buffer {
-    if (this.value)
-      return this.value;
     if (!this.right)
       return hash256.root(this.left.hash, this.left.hash);
     return hash256.root(this.left.hash, this.right.hash);
